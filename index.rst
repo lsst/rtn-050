@@ -13,12 +13,16 @@
 Abstract
 ========
 
-Describes the means of serving the desired DP0.3 data through the services of the Rubin Science Platform.  Initially will serve as a proposal and then evolve into an as-built description.
+Describes the means of serving the desired DP0.3 data through the services of the Rubin Science Platform.
+Initially will serve as a proposal and then evolve into an as-built description.
 
 Motivation and Overview
 =======================
 
-Ticket `PREOPS-1152`_ and an in-progress revision of `RTN-011`_ envision the creation of a new entry in the "DP0" (simulated and/or precursor data) series of Data Previews: service of an existing catalog-based "fast simulation" of the expected Solar System data from the LSST survey, not tied to image data and not the output of the main Science Pipelines.
+Ticket `PREOPS-1152`_ and a recent revision of `RTN-011`_ envision the creation of a new entry in the "DP0"
+(simulated and/or precursor data) series of Data Previews:
+service of an existing catalog-based "fast simulation" of the expected Solar System data from the LSST survey,
+not tied to image data and not the output of the main Science Pipelines.
 
 This "DP0.3" would provide some exposure to the Rubin Science Platform (RSP) and the planned Solar System data model to Data Previews delegates, and allow the early testing of certain features of the RSP that are specific to Solar System (or, more precisely, moving-object) data.
 As presently discussed, this Data Preview would be made available to users in mid-2023.
@@ -34,7 +38,7 @@ The proposed exercise has some notable limitations compared to the final expecte
   For the most part this is not a concern, since DP0.2 has been exercising those capabilities, but there is at least one relevant special case:
 
   - It is planned to provide for time-series queries on moving objects in the RSP that appear together with appropriate cutouts
-    in the images on which the points in the time series were observed.
+    in the images on which the points in the time series were observed, i.e., following the object across the sky.
     This would not be possible in DP0.3.
   - More generally, the usual linkages from single-epoch measurements in catalog tables (in this case, ``DIASource`` and ``SSSource``)
     to the associated images would not be available.
@@ -44,6 +48,9 @@ The proposed exercise has some notable limitations compared to the final expecte
   sufficient data are accumulated to allow identification of a previous DIAObject as arising from an SSO.
   It would therefore also not exercise the ability of users of the RSP to follow and/or replay that evolution.
 
+- In the real system, it will be possible to provide links from the Rubin-hosted tables directly to corresponding
+  external queries against the MPC.
+  Since the DP0.3 data include simulated SSOs, this will not be possible to exercise against the real MPC.
 
 .. _PREOPS-1152: https://jira.lsstcorp.org/browse/PREOPS-1152
 .. _RTN-011: https://rtn-011.lsst.io/
@@ -56,37 +63,56 @@ It produces the following tables, all of which have reference definitions in the
 
 .. _table-ssotables:
 
-.. table:: Major tables to be included in a Solar System DP0.3
+.. table:: Major tables to be included in a Solar System DP0.3.  
 
    +-----------+--------------------------------------------------+--------------+-------------------+---------------------+
    | Table     | Purpose                                          | Size in rows | Number of columns | Data volume on disk |
-   |           |                                                  |              | (in/not in DPDD)  | (in XXX format)     |
+   |           |                                                  |              | (actual/DPDD)     | (in XXX format)     |
    +===========+==================================================+==============+===================+=====================+
-   | DIASource | Observation in a single difference image         |              |                   |                     |
+   | DIASource | Observation in a single difference image         | ~1B          |                   |                     |
    +-----------+--------------------------------------------------+--------------+-------------------+---------------------+
-   | SSSource  | Apparition of a reconstructed SSO in an image    |              |                   |                     |
+   | SSSource  | Apparition of a reconstructed SSO in an image    | ~1B          |                   |                     |
    +-----------+--------------------------------------------------+--------------+-------------------+---------------------+
-   | SSObject  | Reconstructed SSO with orbital parameters        |              |                   |                     |
+   | SSObject  | Reconstructed SSO with orbital parameters        | ~10M         |                   |                     |
    +-----------+--------------------------------------------------+--------------+-------------------+---------------------+
-   | MPCORB    | Shadow of Minor Planet Center database           |              |                   |                     |
+   | MPCORB    | Shadow of Minor Planet Center database           | ~10M         |                   |                     |
    +-----------+--------------------------------------------------+--------------+-------------------+---------------------+
    | (total)   |                                                  |              |                   | 0.5 - 1.0 TB        |
    +-----------+--------------------------------------------------+--------------+-------------------+---------------------+
 
-The simulation is based on a specific, chosen OpSim run.
+The simulation is based on a specific, chosen OpSim run, which will be documented.
 The actual simulation output to be used for DP0.3 is yet to be produced, but a prototype dataset exists and has been in use by the SSSC, ingested into a PostgreSQL database.
+
+Possible image-outline table
+----------------------------
+
+As noted above, the existing SSSC data for DP0.3 is based on a catalog simulation,
+with no images involved in the data chain.
+However, the simulation _was_ based on a survey simulation and therefore on pointings and
+sky coverage from that simulation.
+
+It might improve the user experience, as well as allow the exercise of additional RSP capabilities,
+to include a simple visit table, perhaps in ObsCore format, including the pointings and sky coverage of the
+survey on which the catalogs are based.
+
+This would allow, e.g., visualizing DIASource and SSSource table contents against a background of the
+visit image outlines on the sky, using existing RSP capabilities.
 
 .. _DPDD: https://lse-163.lsst.io/
 
 Service Model
 =============
 
-The RSP instance for DP0.3 would be in the IDF (Google cloud), and, we argue below, could and likely should share most of its components with the existing data.lsst.cloud RSP instance for DP0.2.
+The RSP instance for DP0.3 would be in the IDF (Google cloud), and, we argue below,
+could and likely should share most of its components with the existing data.lsst.cloud RSP instance for DP0.2.
+
+The catalogs would be held in a PostgreSQL database, most likely on-premises at the USDF,
+in a preview of the "Hybrid Model" for the US DAC.
 
 Back-end data for DP0.3 as envisioned herein is limited to catalogs.
 Therefore no image file store is required, no image metadata service (e.g., ObsTAP), and no DataLink "links service".
 
-The components that *are* required follow:
+The specific components that *are* required follow:
 
 Catalog Database
 ----------------
@@ -94,17 +120,20 @@ Catalog Database
 Qserv is probably not a suitable choice for the database back end, for two reasons:
 
 - In the operations-era system, the SSO tables will live in the "Prompt Products Database" (PPDB), which is baselined as PostgreSQL.
-- At the moment, Qserv does not have natural support for sharding the SSObject-to-SSSource relationship, which is not spatially localized.
+- At the moment, Qserv's ingest tools may not have natural support for sharding the SSObject-to-SSSource relationship, which is not spatially localized.
 
 In any event, based on SSSC experience and expert opinion, a single (large) PostgreSQL server should be adequate for the datasets envisioned.
 To support spatial searches via (CADC) TAP, the ``pgsphere`` extension should be installed.
 
 In the "Hybrid Model" for the US DAC, the user-facing services will be in the Google cloud, with the data back ends at the USDF.
 Replicating this model for DP0.3 would require a large Postgres server at SLAC.
-We will analyze the feasibility of this on the relevant time scale.
+This is the likely baseline for DP0.3; we will analyze the feasibility of this in the near future.
 
 An alternative would be to configure a Postgres service at the IDF (Google cloud).
 Some research will be required to determine whether a sufficiently large Postgres service can be configured easily in the Google cloud.
+Pre-configured versions of Postgres with ``pgsphere`` installed are not currently available from Google.
+
+If (see above) an additional table of visits proves desirable, this can be included in the database.
 
 Data Services
 -------------
@@ -113,15 +142,36 @@ TAP service
 ^^^^^^^^^^^
 
 If the database is in Postgres, the CADC TAP service should be used.
-The work done in December/January 2022/23 to produce a Postgres-based TAP service for the "live ObsTAP" instances should be applicable.
-The same DataLink-support extensions to CADC TAP that are available in the Qserv-backed TAP implementation will be needed for DP0.3 as well.
+CADC's code base has native support for Postgres back ends.
+The work done in December/January 2022/23 to deploy a Postgres-based TAP service for the "live ObsTAP" instances should be applicable.
+The same DataLink-support extensions to CADC TAP that were developed by SQuaRE for the Qserv-backed TAP
+implementation will be needed for DP0.3 as well.
 
-At present we do not have the ability to support multiple back ends from a single TAP service instance, so DP0.3 will require its own TAP endpoint even  if it is otherwise incorporated into data.lsst.cloud.  For instance, "data.lsst.cloud/api/ssotap" might be a suitable name.
+At present we do not have the ability to support multiple back ends from a single TAP service instance,
+so DP0.3 will require its own TAP endpoint even if it is otherwise incorporated into data.lsst.cloud
+alongside DP0.2.
+For instance, "data.lsst.cloud/api/ssotap" might be a suitable name.
+
+"TAP_SCHEMA" data for the service will be obtained from Felis in the usual way,
+most likely with a DP0.3-specific Felis file in the ``sdm_schemas`` repository.
+Gregory Dubois-Felsmann would develop this Felis, based on existing DPDD Felis code,
+to reflect the precise DP0.3 data model, in collaboration with the SSSC experts on the dataset.
+
+This work includes providing descriptions, units, UCDs, and foreign-key annotations showing the links
+between tables in the data model.
 
 DataLink and ancillary services
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 As noted above, no DataLink "links service" for images is required or even relevant to DP0.3.
+
+However, "one-line" query-rewriting services designed for use with DataLink will be desirable
+to enable convenient user access to actions like "show me all the SSSource for this SSObject".
+Such services rewrite a simple REST API query for, e.g., an SSObject ID to a TAP query with
+the appropriate corresponding ADQL text.
+
+The existing ``datalinker`` framework will be suitable for these services, and experience
+with that framework has shown that a new service can be written and released in a few hours.
 
 User Interface Services
 -----------------------
@@ -129,16 +179,64 @@ User Interface Services
 Portal Aspect considerations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+We will need to decide whether to include DP0.3 in the same RSP instance as DP0.2.
+At this time, we are assuming that will be the plan.
+
+In that model, because of the limitation on multi-back-end TAP services, users will have to be
+given a choice between DP0.2 and DP0.3 at the top of the TAP query screen in the Portal Aspect.
+This is an existing capability of the Portal (see :ref:`fig-portal-tap-menu`).
+Note that this requires one or the other to be the default, so, unless additional work is
+requested, it might turn out to be the case that DP0.3 users have to always start their
+session by changing TAP services.
+
+.. figure:: /_static/Portal-TAP-menu.png
+    :name: fig-portal-tap-menu
+    :target: ../_images/Portal-TAP-menu.png
+
+    Existing TAP service selection menu in the RSP Portal Aspect.
+
+Once the TAP service is selected, the user will be presented with a menu of available tables.
+The presentation order of tables, and of columns within tables, are controlled by the Felix-based
+TAP_SCHEMA metadata mentioned above.
+
+The Portal Aspect displays all spatially-organized tabular query results against a default
+context image, generally a HiPS map.
+In DP0.2, we have changed that default context image to be a HiPS image of just the DC2 field.
+This was important as DP0.2 exists in a simulated universe not based on the real sky.
+
+For DP0.3, a real sky is appropriate as the context image.
+If DP0.3 is in the same RSP instance as DP0.2, we will have to develop a means of associating
+the default context image with the selected TAP service, to avoid users having to manually
+change context images in every session.
+We would likely use a color HiPS image from 2MASS as the default context image for DP0.3,
+unless the team has a preference for a different existing all-sky HiPS (e.g., from PanSTARRS).
+
+
 Notebook Aspect considerations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We anticipate that most users of DP0.3 will focus their work in the Python-based Notebook Aspect
+environment.
+
+We note that users will have to migrate from whatever they may be doing in the existing SSSC
+environment (perhaps SQLAlchemy?) to the use of TAP queries.
+This has been extensively explored in DP0.2 (albeit over Qserv), so we don't anticipate any
+issues, with the following one exception:
+
+The existing Python "convenience function" for obtaining a reference to the RSP TAP service
+from within a Notebook Aspect notebook, with the necessary authentication information
+embedded automatically, does not currently support there being more than one TAP service
+per RSP instance.
+Therefore, if DP0.3 is released in the same instance as DP0.2, which will require the use of
+two TAP services in the same instance, as noted above, some work will be required to
+generalize this.
 
 Authentication and Authorization
 --------------------------------
 
-
-.. A non-Rubin all-sky HiPS image, likely from 2MASS, will be used as the default context image for display of query results in the RSP Portal Aspect.
-   This is acceptable for DP0.3 because there is no simulated static sky involved that is significantly different from the real universe
-   (Unlike the case for DP0.2).
+At the moment we are not aware of any special restrictions on access to the SSSC simulation,
+so the baseline would be to make all DP0.2 and DP0.3 data accessible to the same set of users
+and base it on the COManage IAM mechanism to which DP0.2 is in the process of being transitioned.
 
 Preparations Required
 =====================
