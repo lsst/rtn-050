@@ -120,13 +120,15 @@ Catalog Database
 Qserv is probably not a suitable choice for the database back end, for two reasons:
 
 - In the operations-era system, the SSO tables will live in the "Prompt Products Database" (PPDB), which is baselined as PostgreSQL.
-- At the moment, Qserv's ingest tools may not have natural support for sharding the SSObject-to-SSSource relationship, which is not spatially localized.
+- A partitioning strategy for Qserv is unclear, since SSObjects are not spatially localized, so supporting efficient queries on the
+  SSObject-to-SSSource relationship might be in conflict with efficient spatial queries on the SSSource table.
 
-In any event, based on SSSC experience and expert opinion, a single (large) PostgreSQL server should be adequate for the datasets envisioned.
-To support spatial searches via (CADC) TAP, the ``pgsphere`` extension should be installed.
+Based both on SSSC experience and expert opinion, a single PostgreSQL server should be adequate for the datasets envisioned.
+To support spatial searches via (CADC) TAP, the ``pgsphere`` extension should be installed on the Postgres server.
 
 In the "Hybrid Model" for the US DAC, the user-facing services will be in the Google cloud, with the data back ends at the USDF.
-Replicating this model for DP0.3 would require a large Postgres server at SLAC.
+Replicating this model for DP0.3 would require a large Postgres server at SLAC,
+and ensuring that a cloud-based TAP service can reach that server for queries.
 This is the likely baseline for DP0.3; we will analyze the feasibility of this in the near future.
 
 An alternative would be to configure a Postgres service at the IDF (Google cloud).
