@@ -241,6 +241,22 @@ and base it on the COManage IAM mechanism to which DP0.2 is in the process of be
 Preparations Required
 =====================
 
+Regeneration of the Simulation
+------------------------------
+
+An initial review of the existing SSSC simulation, performed last year by Gregory Dubois-Felsmann
+and Mario Juric, exposed some minor issues in consistency with the DPDD and other aspects of the
+schema.
+Mario described the changes that were suggested as very easy to make.
+
+We also understand that the SSSC will in any event want to regenerate the simulation based on
+a more recent survey plan simulation.
+
+So the first step in preparation for DP0.3 would be to confirm the changes needed and then
+proceed to re-run the simulation.
+If a visit table is decided to be a useful adjunct to DP0.3, this would be the time to define
+and generate it.
+
 Database Setup
 --------------
 
