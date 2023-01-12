@@ -34,7 +34,7 @@ authors:
 # doi: 10.5281/zenodo.#####
 
 # Copyright statement
-copyright: "2023, California Institute of Technology"
+copyright: "2022-2023, California Institute of Technology"
 
 # Description. A short, 1-2 sentence statemement used by document indices.
 description: "Describes the means of serving the desired DP0.3 data through the services of the Rubin Science Platform. Initially will serve as a proposal and then evolve into an as-built description."
