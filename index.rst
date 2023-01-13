@@ -238,7 +238,37 @@ Authentication and Authorization
 
 At the moment we are not aware of any special restrictions on access to the SSSC simulation,
 so the baseline would be to make all DP0.2 and DP0.3 data accessible to the same set of users
-and base it on the COManage IAM mechanism to which DP0.2 is in the process of being transitioned.
+and base it on the CILogon/COmanage IAM mechanism to which DP0.2 is in the process of being transitioned.
+
+
+Timeline
+========
+
+- January 2023: Refine definition of this Data Preview.
+  Review existing SSSC data model for any changes needed for DPDD and/or standards (e.g., IVOA)
+  conformance (Dubois-Felsmann, Juric).
+
+- February 2023: Regenerate simulation (Juric).
+  Produce initial Felis data model (Dubois-Felsmann).
+  Prepare necessary USDF infrastructure (R. Dubois).
+
+- March 2023: Initial version of data turned over to USDF team.
+  Ingest into Postgres at USDF (Mueller).
+  Fix/regenerate source data if problems are found.
+
+- April 2023: Establish TAP service in Google Cloud over USDF Postgres DB (SQuaRE).
+  Complete Portal (context image selection) and Notebook (TAP service helper function) software refinements.
+
+- May 2023: Exercise DP0.3 internally.
+  Complete DataLink microservices and metadata deployment (SQuaRE and D-F).
+  CET develops tutorials and notebooks.
+
+- 26 May 2023: Release candidate turned over to product owners.
+
+- 13 June 2023: Nominal release date.
+
+- June-September 2023: Public (RTN-011) commitment for release date.
+
 
 Preparations Required
 =====================
