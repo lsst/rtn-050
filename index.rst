@@ -261,9 +261,9 @@ Timeline
 
 - May 2023: Exercise DP0.3 internally.
   Complete DataLink microservices and metadata deployment (SQuaRE and D-F).
- Develop tutorials and notebooks (Community Engagement Team (CET))
+  Develop tutorials and notebooks (Community Engagement Team (CET)).
 
-- 26 May 2023: Release candidate turned over to product owners (Dubois-Felsmann & Slater)
+- 26 May 2023: Release candidate turned over to product owners (Dubois-Felsmann and Slater).
 
 - 13 June 2023: Nominal release date.
 
