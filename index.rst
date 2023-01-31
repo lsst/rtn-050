@@ -4,17 +4,12 @@
 
 .. Metadata such as the title, authors, and description are set in metadata.yaml
 
-.. TODO: Delete the note below before merging new content to the main branch.
-
-.. note::
-
-   **This technote is a work-in-progress.**
 
 Abstract
 ========
 
 This technote describes the means by which the desired DP0.3 dataset will be served through the services of the Rubin Science Platform.
-Initially will serve as a proposal and then evolve into an as-built description.
+Initially it will serve as a implementation design baseline and then evolve into an as-built description.
 
 Motivation and Overview
 =======================
